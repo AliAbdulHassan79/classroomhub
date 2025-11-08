@@ -161,22 +161,26 @@ const client_id = "0e5163d3e9c84b37a6d7f30e4202aa1";
 const redirect_uri = "https://classroomhub-one.vercel.app";
 const scope = "user-read-playback-state user-modify-playback-state streaming";
 
-// Check token in URL hash
+// Check token in URL hash or localStorage
+let token = localStorage.getItem("spotify_token");
 const hash = window.location.hash.substring(1);
 const params = new URLSearchParams(hash);
-const token = params.get("access_token");
+if(params.get("access_token")){
+  token = params.get("access_token");
+  localStorage.setItem("spotify_token", token);
+  window.location.hash = "";
+}
 
 function showAppWithSpotify(token){
   spotifyModal.style.display = "none";
   mainApp.style.display = "grid";
-  // Spotify Embed Player
   spotifyBar.innerHTML = `<iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DX4WYpdgoIcn6" allow="encrypted-media" frameborder="0"></iframe>`;
 }
 
 if(token){
   showAppWithSpotify(token);
 } else {
-  mainApp.style.display = "grid"; // show main UI even if not logged in
+  mainApp.style.display = "grid";
   spotifyModal.style.display = "flex";
   document.getElementById("loginSpotifyBtn").onclick = () => {
     const url = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(redirect_uri)}&scope=${encodeURIComponent(scope)}`;
