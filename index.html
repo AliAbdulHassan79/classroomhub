@@ -35,21 +35,15 @@ body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text
 .phone h3 { margin:5px 0; font-size:16px; }
 #spotify-bar{position:fixed;bottom:0;left:0;width:100%;height:80px;background:#fff;border-top:2px solid var(--accent);display:flex;align-items:center;justify-content:center;z-index:999;box-shadow:0 -2px 8px rgba(0,0,0,0.2);}
 #spotify-bar iframe{height:60px;width:300px;border-radius:12px;}
-#spotify-login-modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column;color:#fff;font-family:Arial,sans-serif;}
-#spotify-login-modal button{padding:12px 20px;background:var(--accent);border:none;border-radius:8px;color:white;font-size:16px;cursor:pointer;margin-top:20px;}
+.toggle-btn{margin:12px 0;padding:8px 12px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;}
 @media (max-width:900px){.app{grid-template-columns:1fr;}.sidebar{order:2;}.main{order:1;}}
 </style>
 </head>
 <body>
 
-<!-- Spotify Login Modal -->
-<div id="spotify-login-modal">
-  <h2>Login to Spotify to Play Music</h2>
-  <button id="loginSpotifyBtn">Login with Spotify</button>
-</div>
-
-<div class="app" id="mainApp" style="display:none;">
+<div class="app" id="mainApp">
   <div class="header"><div class="brand"><div class="logo">📘</div>Classroom Hub</div></div>
+
   <aside class="sidebar">
     <h3>My Classes</h3>
     <div class="class-list">
@@ -62,6 +56,10 @@ body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text
     <h3>Available Games</h3>
     <div class="grid" id="games-grid"></div>
 
+    <h3>Spotify (Optional)</h3>
+    <button id="loginSpotifyBtn" class="toggle-btn">Login to Spotify</button>
+
+    <!-- Phone System -->
     <h3>Phone System</h3>
     <div class="phone">
       <section>
@@ -152,16 +150,12 @@ function findNumber(){const name=document.getElementById("lookupName").value.tri
 function callUser(){if(currentNumber){users[myNumber].calls.push(`Outgoing to ${currentNumber} at ${new Date().toLocaleTimeString()}`);updateCallHistory();alert(`Calling ${contacts[currentNumber]||currentNumber}...`);}else alert("Enter a number!");}
 function sendSMS(){if(currentNumber){const text=prompt("Enter your message:");if(text){users[myNumber].sms.push(`To ${currentNumber}: ${text}`);updateSMS();alert("Message sent!");}}else alert("Enter a number!");}
 
-// --- Spotify Login Modal ---
-const spotifyModal = document.getElementById("spotify-login-modal");
-const mainApp = document.getElementById("mainApp");
-const spotifyBar = document.getElementById("spotify-bar");
-
+// --- Optional Spotify Login ---
+const spotifyBarDiv = document.getElementById("spotify-bar");
 const client_id = "0e5163d3e9c84b37a6d7f30e4202aa1";
 const redirect_uri = "https://classroomhub-one.vercel.app";
 const scope = "user-read-playback-state user-modify-playback-state streaming";
 
-// Check token in URL hash or localStorage
 let token = localStorage.getItem("spotify_token");
 const hash = window.location.hash.substring(1);
 const params = new URLSearchParams(hash);
@@ -171,22 +165,18 @@ if(params.get("access_token")){
   window.location.hash = "";
 }
 
-function showAppWithSpotify(token){
-  spotifyModal.style.display = "none";
-  mainApp.style.display = "grid";
-  spotifyBar.innerHTML = `<iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DX4WYpdgoIcn6" allow="encrypted-media" frameborder="0"></iframe>`;
+function showSpotifyPlayer(){
+  spotifyBarDiv.innerHTML = `<iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DX4WYpdgoIcn6" allow="encrypted-media" frameborder="0"></iframe>`;
 }
 
 if(token){
-  showAppWithSpotify(token);
-} else {
-  mainApp.style.display = "grid";
-  spotifyModal.style.display = "flex";
-  document.getElementById("loginSpotifyBtn").onclick = () => {
-    const url = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(redirect_uri)}&scope=${encodeURIComponent(scope)}`;
-    window.location.href = url;
-  };
+  showSpotifyPlayer();
 }
+
+document.getElementById("loginSpotifyBtn").onclick = () => {
+  const url = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(redirect_uri)}&scope=${encodeURIComponent(scope)}`;
+  window.location.href = url;
+};
 </script>
 </body>
 </html>
