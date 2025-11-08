@@ -125,9 +125,9 @@ body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text
 <script>
 // --- Games ---
 const games = [
-  { title: "Snake", game_image_icon: "https://i.imgur.com/3sX2z8x.png", iframe: "https://html5games.com/snake" },
-  { title: "Tetris", game_image_icon: "https://i.imgur.com/4W8i4K1.png", iframe: "https://html5games.com/tetris" },
-  { title: "Pacman", game_image_icon: "https://i.imgur.com/1yB1R5U.png", iframe: "https://html5games.com/pacman" }
+  { title: "Snake", game_image_icon: "https://i.imgur.com/3sX2z8x.png", iframe: "https://playsnake.org/" },
+  { title: "Tetris", game_image_icon: "https://i.imgur.com/4W8i4K1.png", iframe: "https://tetris.com/play-tetris" },
+  { title: "Pacman", game_image_icon: "https://i.imgur.com/1yB1R5U.png", iframe: "https://scratch.mit.edu/projects/10128407/embed" }
 ];
 
 const gamesGrid = document.getElementById('games-grid');
@@ -175,16 +175,16 @@ let currentNumber = "";
 function initPhone(){
   let name = prompt("Enter your name:");
   if(!myNumber){
-    if(name in Object.values(users).map(u=>u.name)){
-      // Existing user
-      myNumber = Object.keys(users).find(k=>users[k].name===name);
+    let existingUser = Object.entries(users).find(([num,u]) => u.name === name);
+    if(existingUser){
+      myNumber = existingUser[0];
     } else {
-      // New user
       let newNumber;
       do { newNumber = Math.floor(1000 + Math.random()*9000).toString(); } while(users[newNumber]);
       myNumber = newNumber;
       users[myNumber] = { name: name, sms: [], calls: [] };
       localStorage.setItem("users", JSON.stringify(users));
+      localStorage.setItem("myNumber", myNumber);
     }
   }
   document.getElementById("screen").textContent = `Hello ${name}, your number: ${myNumber}`;
@@ -225,6 +225,7 @@ function findNumber() {
 function callUser(){
   if(currentNumber){
     users[myNumber].calls.push(`Outgoing to ${currentNumber} at ${new Date().toLocaleTimeString()}`);
+    localStorage.setItem("users", JSON.stringify(users));
     updateCallHistory();
     alert(`Calling ${contacts[currentNumber] || currentNumber}...`);
   } else alert("Enter a number!");
@@ -234,6 +235,7 @@ function sendSMS(){
     const text = prompt("Enter your message:");
     if(text){
       users[myNumber].sms.push(`To ${currentNumber}: ${text}`);
+      localStorage.setItem("users", JSON.stringify(users));
       updateSMS();
       alert("Message sent!");
     }
