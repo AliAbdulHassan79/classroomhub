@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Classroom Hub — Games + Spotify + Phone</title>
+<style>
+:root{
+  --bg:#f6f9fb;
+  --card:#fff;
+  --text:#0f1724;
+  --accent:#2b8cff;
+  --school:#2e7d32;
+  --radius:12px;
+}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text);}
+.app{display:grid;grid-template-columns:240px 1fr;gap:16px;max-width:1200px;margin:0 auto;padding:20px;}
+.header{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand .logo{font-size:28px;}
+.sidebar{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+.sidebar h3{margin-top:0;}
+.class-list{display:flex;flex-direction:column;gap:8px;}
+.class-item{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .1s;}
+.class-item:hover{background:rgba(0,0,0,0.04);}
+.class-thumb{width:36px;height:36px;background:var(--school);color:white;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:bold;}
+.main{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:12px;}
+.card{background:linear-gradient(180deg,#fff,#f9f9f9);border-radius:12px;padding:8px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.08);transition:transform .1s;}
+.card:hover{transform:translateY(-5px);}
+.card img{width:100%;height:120px;object-fit:cover;border-radius:8px;}
+.card .title{font-weight:700;margin-top:4px;}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:100;}
+.viewer iframe{width:80%;height:80%;border:0;border-radius:12px;}
+.viewer .close{position:absolute;top:20px;right:20px;padding:8px 12px;background:white;border:none;border-radius:8px;cursor:pointer;}
+.toggle-btn{margin:12px 0;padding:8px 12px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;}
+#spotify-player{width:100%;height:380px;border:0;border-radius:12px;}
+
+/* Phone system styles */
+.phone { width:100%; background:var(--card); border-radius:var(--radius); padding:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-top:20px;}
+.phone .screen { background:#222; color:#0f0; padding:10px; height:50px; text-align:right; font-size:20px; border-radius:8px;}
+.phone .keypad { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; margin-top:10px;}
+.phone .keypad button { padding:15px; font-size:16px; border-radius:8px; border:none; background:#f0f0f0; cursor:pointer;}
+.phone .keypad button.call { background:var(--accent); color:#fff; grid-column: span 3; }
+.phone section { margin-top:12px; font-size:14px; max-height:120px; overflow-y:auto; background:#fafafa; border-top:1px solid #ccc; padding:6px; border-radius:8px;}
+.phone h3 { margin:5px 0; font-size:16px; }
+@media (max-width:900px){.app{grid-template-columns:1fr;}.sidebar{order:2;}.main{order:1;}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="brand"><div class="logo">📘</div>Classroom Hub</div>
+  </div>
+
+  <aside class="sidebar">
+    <h3>My Classes</h3>
+    <div class="class-list">
+      <div class="class-item"><div class="class-thumb">CL</div>All Resources</div>
+      <div class="class-item"><div class="class-thumb">M</div>Math Lab</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <h3>Available Games</h3>
+    <div class="grid" id="games-grid"></div>
+
+    <h3>Spotify</h3>
+    <button class="toggle-btn" id="toggleMode">Switch to Spotify Login</button>
+    <div id="spotify-container">
+      <iframe id="spotify-player" src="https://open.spotify.com/embed/playlist/37i9dQZF1DX4WYpdgoIcn6" allow="encrypted-media"></iframe>
+    </div>
+
+    <!-- Phone System -->
+    <h3>Phone System</h3>
+    <div class="phone">
+      <section>
+        <h3>Contacts</h3>
+        <div id="contactsList"></div>
+        <button class="toggle-btn" onclick="addContact()">Add Contact</button>
+        <div style="margin-top:6px;">
+          <input type="text" id="lookupName" placeholder="Enter name to find number" style="padding:6px; border-radius:6px; border:1px solid #ccc;">
+          <button onclick="findNumber()" class="toggle-btn">Find Number</button>
+          <div id="lookupResult" style="margin-top:4px;"></div>
+        </div>
+      </section>
+
+      <div class="screen" id="screen">Enter Number</div>
+      <div class="keypad">
+        <button onclick="press('1')">1</button>
+        <button onclick="press('2')">2</button>
+        <button onclick="press('3')">3</button>
+        <button onclick="press('4')">4</button>
+        <button onclick="press('5')">5</button>
+        <button onclick="press('6')">6</button>
+        <button onclick="press('7')">7</button>
+        <button onclick="press('8')">8</button>
+        <button onclick="press('9')">9</button>
+        <button onclick="press('*')">*</button>
+        <button onclick="press('0')">0</button>
+        <button onclick="press('#')">#</button>
+        <button class="call" onclick="callUser()">📞 Call</button>
+        <button class="call" onclick="sendSMS()">💬 SMS</button>
+        <button class="call" onclick="clearScreen()">❌ Clear</button>
+      </div>
+      <section>
+        <h3>Call History</h3>
+        <div id="callHistory"></div>
+      </section>
+      <section>
+        <h3>SMS Inbox</h3>
+        <div id="smsInbox"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="viewer" id="viewer">
+  <button class="close" onclick="closeViewer()">Close</button>
+  <iframe id="game-frame" src=""></iframe>
+</div>
+
+<script src="https://sdk.scdn.co/spotify-player.js"></script>
+<script>
+// --- Games ---
+const games = [
+  { title: "Snake", game_image_icon: "https://i.imgur.com/3sX2z8x.png", iframe: "https://html5games.com/snake" },
+  { title: "Tetris", game_image_icon: "https://i.imgur.com/4W8i4K1.png", iframe: "https://html5games.com/tetris" },
+  { title: "Pacman", game_image_icon: "https://i.imgur.com/1yB1R5U.png", iframe: "https://html5games.com/pacman" }
+];
+
+const gamesGrid = document.getElementById('games-grid');
+games.forEach(game => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `<img src="${game.game_image_icon}" alt="${game.title}"><div class="title">${game.title}</div>`;
+  card.onclick = () => openViewer(game.iframe);
+  gamesGrid.appendChild(card);
+});
+
+// --- Viewer ---
+function openViewer(url){
+  document.getElementById('game-frame').src = url;
+  document.getElementById('viewer').style.display='flex';
+}
+function closeViewer(){
+  document.getElementById('viewer').style.display='none';
+  document.getElementById('game-frame').src='';
+}
+
+// --- Spotify ---
+const toggleBtn = document.getElementById('toggleMode');
+const spotifyContainer = document.getElementById('spotify-container');
+let isGuest = true;
+toggleBtn.onclick = () => {
+  if(isGuest){
+    isGuest = false;
+    toggleBtn.textContent = "Switch to Guest Mode";
+    spotifyContainer.innerHTML = `<button id="loginSpotify" class="toggle-btn">Login with Spotify</button>`;
+    document.getElementById('loginSpotify').onclick = () => alert("Spotify login placeholder");
+  } else {
+    isGuest = true;
+    toggleBtn.textContent = "Switch to Spotify Login";
+    spotifyContainer.innerHTML = `<iframe id="spotify-player" src="https://open.spotify.com/embed/playlist/37i9dQZF1DX4WYpdgoIcn6" allow="encrypted-media"></iframe>`;
+  }
+}
+
+// --- Phone System ---
+let users = JSON.parse(localStorage.getItem("users")) || {};
+let myNumber = localStorage.getItem("myNumber");
+let contacts = {};
+let currentNumber = "";
+
+function initPhone(){
+  let name = prompt("Enter your name:");
+  if(!myNumber){
+    if(name in Object.values(users).map(u=>u.name)){
+      // Existing user
+      myNumber = Object.keys(users).find(k=>users[k].name===name);
+    } else {
+      // New user
+      let newNumber;
+      do { newNumber = Math.floor(1000 + Math.random()*9000).toString(); } while(users[newNumber]);
+      myNumber = newNumber;
+      users[myNumber] = { name: name, sms: [], calls: [] };
+      localStorage.setItem("users", JSON.stringify(users));
+    }
+  }
+  document.getElementById("screen").textContent = `Hello ${name}, your number: ${myNumber}`;
+  updateCallHistory(); updateSMS();
+}
+initPhone();
+
+function press(num){ currentNumber += num; document.getElementById('screen').textContent = currentNumber; }
+function clearScreen(){ currentNumber = ""; document.getElementById('screen').textContent = "Enter Number"; }
+
+function updateCallHistory(){ document.getElementById('callHistory').innerHTML = users[myNumber].calls.join("<br>"); }
+function updateSMS(){ document.getElementById('smsInbox').innerHTML = users[myNumber].sms.join("<br>"); }
+
+function addContact() {
+  let number = prompt("Enter phone number:");
+  let name = prompt("Enter name for this contact:");
+  if(number && name){ contacts[number] = name; updateContacts(); }
+}
+function updateContacts() {
+  const list = document.getElementById("contactsList");
+  list.innerHTML = "";
+  for(let number in contacts){
+    const btn = document.createElement("button");
+    btn.textContent = contacts[number];
+    btn.style.margin="2px";
+    btn.onclick = ()=>{ currentNumber=number; document.getElementById("screen").textContent = `${contacts[number]} (${number})`; };
+    list.appendChild(btn);
+  }
+}
+function findNumber() {
+  const name = document.getElementById("lookupName").value.trim();
+  const resultDiv = document.getElementById("lookupResult");
+  const number = Object.keys(contacts).find(num=>contacts[num].toLowerCase()===name.toLowerCase());
+  if(number){ resultDiv.textContent=`Number: ${number}`; currentNumber=number; document.getElementById("screen").textContent=`${contacts[number]} (${number})`; }
+  else resultDiv.textContent="Name not found!";
+}
+
+function callUser(){
+  if(currentNumber){
+    users[myNumber].calls.push(`Outgoing to ${currentNumber} at ${new Date().toLocaleTimeString()}`);
+    updateCallHistory();
+    alert(`Calling ${contacts[currentNumber] || currentNumber}...`);
+  } else alert("Enter a number!");
+}
+function sendSMS(){
+  if(currentNumber){
+    const text = prompt("Enter your message:");
+    if(text){
+      users[myNumber].sms.push(`To ${currentNumber}: ${text}`);
+      updateSMS();
+      alert("Message sent!");
+    }
+  } else alert("Enter a number!");
+}
+</script>
+</body>
+</html>
