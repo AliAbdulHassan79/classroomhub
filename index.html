@@ -84,12 +84,33 @@ h1{
   cursor:pointer;
   font-weight:bold;
 }
+/* --- Spotify Control Bar --- */
+#spotify-bar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:var(--accent);
+  color:#fff;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  height:80px;
+  box-shadow:0 -2px 10px rgba(0,0,0,0.2);
+  z-index:15;
+}
+#spotify-frame{
+  border:none;
+  width:300px;
+  height:80px;
+  border-radius:0;
+}
 </style>
 </head>
 <body>
 <h1>Classroom Hub</h1>
 
-<div class="grid" id="games-grid"></div>
+<div class="grid" id="apps-grid"></div>
 
 <!-- Viewer -->
 <div id="viewer">
@@ -97,43 +118,55 @@ h1{
   <iframe id="game-frame"></iframe>
 </div>
 
+<!-- Spotify Bar -->
+<div id="spotify-bar">
+  <iframe id="spotify-frame" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+</div>
+
 <script>
-// --- Games, Spotify, Phone ---
-const items = [
-  // Games
+// --- Apps List ---
+const apps = [
   { title:"Snake", img:"https://i.imgur.com/3sX2z8x.png", iframe:"https://playsnake.org/" },
   { title:"Tetris", img:"https://i.imgur.com/4W8i4K1.png", iframe:"https://tetris.com/play-tetris" },
   { title:"Pac-Man", img:"https://i.imgur.com/1yB1R5U.png", iframe:"https://scratch.mit.edu/projects/10128407/embed" },
-
-  // Spotify
   { title:"Spotify", img:"https://i.imgur.com/MqRjQ2B.png", iframe:"https://open.spotify.com/embed" },
-
-  // Phone (local demo)
   { title:"Phone", img:"https://i.imgur.com/7rVuXx8.png", iframe:"https://lovable-phonemock.glitch.me/" }
 ];
 
-const grid = document.getElementById("games-grid");
-
-items.forEach(app=>{
+const grid=document.getElementById("apps-grid");
+apps.forEach(app=>{
   const card=document.createElement("div");
   card.className="card";
   card.innerHTML=`<img src="${app.img}" alt="${app.title}"><div class="title">${app.title}</div>`;
-  card.onclick=()=>openViewer(app.iframe);
+  card.onclick=()=>openViewer(app);
   grid.appendChild(card);
 });
 
 // --- Viewer Functions ---
-function openViewer(url){
+function openViewer(app){
   const viewer=document.getElementById("viewer");
   const frame=document.getElementById("game-frame");
-  frame.src=url;
+  
+  if(app.title==="Spotify"){
+    // Open Spotify login in new tab
+    window.open("https://open.spotify.com", "_blank");
+    // Show embedded control bar
+    const spotifyBar=document.getElementById("spotify-bar");
+    const spotifyFrame=document.getElementById("spotify-frame");
+    spotifyBar.style.display="flex";
+    spotifyFrame.src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M";
+    return; // do not open viewer iframe
+  }
+
+  frame.src=app.iframe;
   viewer.style.display="flex";
 }
+
 function closeViewer(){
   const viewer=document.getElementById("viewer");
   const frame=document.getElementById("game-frame");
-  frame.src="";
   viewer.style.display="none";
+  frame.src="";
 }
 </script>
 </body>
