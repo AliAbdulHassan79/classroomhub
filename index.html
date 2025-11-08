@@ -152,43 +152,37 @@ function findNumber(){const name=document.getElementById("lookupName").value.tri
 function callUser(){if(currentNumber){users[myNumber].calls.push(`Outgoing to ${currentNumber} at ${new Date().toLocaleTimeString()}`);updateCallHistory();alert(`Calling ${contacts[currentNumber]||currentNumber}...`);}else alert("Enter a number!");}
 function sendSMS(){if(currentNumber){const text=prompt("Enter your message:");if(text){users[myNumber].sms.push(`To ${currentNumber}: ${text}`);updateSMS();alert("Message sent!");}}else alert("Enter a number!");}
 
-// --- Spotify Login ---
+// --- Spotify Login Modal ---
 const spotifyModal = document.getElementById("spotify-login-modal");
 const mainApp = document.getElementById("mainApp");
 const spotifyBar = document.getElementById("spotify-bar");
-const urlParams = new URLSearchParams(window.location.search);
-const accessToken = urlParams.get("access_token");
 
-// Show main app only if logged in
-if(accessToken){
-  spotifyModal.style.display="none";
-  mainApp.style.display="grid";
+const client_id = "0e5163d3e9c84b37a6d7f30e4202aa1";
+const redirect_uri = "https://classroomhub-one.vercel.app";
+const scope = "user-read-playback-state user-modify-playback-state streaming";
 
-  // Load Spotify Web Playback SDK
-  const script=document.createElement('script');
-  script.src="https://sdk.scdn.co/spotify-player.js";
-  document.body.appendChild(script);
+// Check token in URL hash
+const hash = window.location.hash.substring(1);
+const params = new URLSearchParams(hash);
+const token = params.get("access_token");
 
-  window.onSpotifyWebPlaybackSDKReady = () => {
-    const player = new Spotify.Player({
-      name:'Classroom Hub Player',
-      getOAuthToken: cb => { cb(accessToken); }
-    });
-    player.addListener('ready', ({ device_id }) => {
-      fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`,{
-        method:'PUT',
-        body:JSON.stringify({context_uri:'spotify:playlist:37i9dQZF1DX4WYpdgoIcn6'}),
-        headers:{'Authorization':'Bearer '+accessToken}
-      });
-    });
-    player.connect();
-  }
+function showAppWithSpotify(token){
+  spotifyModal.style.display = "none";
+  mainApp.style.display = "grid";
+  // Spotify Embed Player
+  spotifyBar.innerHTML = `<iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DX4WYpdgoIcn6" allow="encrypted-media" frameborder="0"></iframe>`;
 }
 
-// Login button
-document.getElementById("loginSpotifyBtn").onclick = () => {
-  window.location.href = "https://classroomhub-one.vercel.app/api/spotify";
-};
+if(token){
+  showAppWithSpotify(token);
+} else {
+  mainApp.style.display = "grid"; // show main UI even if not logged in
+  spotifyModal.style.display = "flex";
+  document.getElementById("loginSpotifyBtn").onclick = () => {
+    const url = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(redirect_uri)}&scope=${encodeURIComponent(scope)}`;
+    window.location.href = url;
+  };
+}
 </script>
 </body>
 </html>
