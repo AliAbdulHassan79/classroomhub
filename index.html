@@ -34,7 +34,6 @@ body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text
 .viewer iframe{width:80%;height:80%;border:0;border-radius:12px;}
 .viewer .close{position:absolute;top:20px;right:20px;padding:8px 12px;background:white;border:none;border-radius:8px;cursor:pointer;}
 .toggle-btn{margin:12px 0;padding:8px 12px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;}
-#spotify-player{width:100%;height:380px;border:0;border-radius:12px;}
 
 /* Phone system */
 .phone { width:100%; background:var(--card); border-radius:var(--radius); padding:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-top:20px;}
@@ -68,7 +67,7 @@ body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text
     <div class="grid" id="games-grid"></div>
 
     <h3>Spotify</h3>
-    <button class="toggle-btn" id="toggleMode">Switch to Spotify Login</button>
+    <button class="toggle-btn" id="loginSpotify">Login with Spotify</button>
     <div id="spotify-container">
       <iframe id="spotify-player" src="https://open.spotify.com/embed/playlist/37i9dQZF1DX4WYpdgoIcn6" allow="encrypted-media"></iframe>
     </div>
@@ -213,21 +212,38 @@ function sendSMS(){
   } else alert("Enter a number!");
 }
 
-// --- Spotify toggle (original UI) ---
-const toggleBtn = document.getElementById('toggleMode');
+// --- Spotify login integration ---
+const loginBtn = document.getElementById("loginSpotify");
 const spotifyContainer = document.getElementById('spotify-container');
-let isGuest = true;
-toggleBtn.onclick = () => {
-  if(isGuest){
-    isGuest = false;
-    toggleBtn.textContent = "Switch to Guest Mode";
-    spotifyContainer.innerHTML = `<button id="loginSpotify" class="toggle-btn">Login with Spotify</button>`;
-    document.getElementById('loginSpotify').onclick = () => alert("Spotify login placeholder");
-  } else {
-    isGuest = true;
-    toggleBtn.textContent = "Switch to Spotify Login";
-    spotifyContainer.innerHTML = `<iframe id="spotify-player" src="https://open.spotify.com/embed/playlist/37i9dQZF1DX4WYpdgoIcn6" allow="encrypted-media"></iframe>`;
+loginBtn.onclick = () => { window.location.href = "http://localhost:8888/login"; }
+
+// Check for access token from redirect
+const params = new URLSearchParams(window.location.search);
+const accessToken = params.get("access_token");
+if(accessToken){
+  spotifyContainer.innerHTML = "<div id='playerStatus'>Loading Spotify Player...</div>";
+
+  window.onSpotifyWebPlaybackSDKReady = () => {
+    const player = new Spotify.Player({
+      name: 'Classroom Hub Player',
+      getOAuthToken: cb => { cb(accessToken); }
+    });
+
+    player.addListener('ready', ({ device_id }) => {
+      document.getElementById('playerStatus').innerText = "Spotify Ready!";
+      fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ context_uri: 'spotify:playlist:37i9dQZF1DX4WYpdgoIcn6' }),
+        headers: { 'Authorization': 'Bearer ' + accessToken }
+      });
+    });
+
+    player.connect();
   }
+
+  const script = document.createElement('script');
+  script.src = "https://sdk.scdn.co/spotify-player.js";
+  document.body.appendChild(script);
 }
 </script>
 </body>
