@@ -44,6 +44,22 @@ body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text
 .phone section { margin-top:12px; font-size:14px; max-height:120px; overflow-y:auto; background:#fafafa; border-top:1px solid #ccc; padding:6px; border-radius:8px;}
 .phone h3 { margin:5px 0; font-size:16px; }
 
+/* Fixed Spotify player bar */
+#spotify-bar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  height:80px;
+  background:#fff;
+  border-top:2px solid var(--accent);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+  box-shadow:0 -2px 8px rgba(0,0,0,0.2);
+}
+#spotify-bar iframe{height:60px; width:300px; border-radius:12px;}
 @media (max-width:900px){.app{grid-template-columns:1fr;}.sidebar{order:2;}.main{order:1;}}
 </style>
 </head>
@@ -68,9 +84,7 @@ body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text
 
     <h3>Spotify</h3>
     <button class="toggle-btn" id="loginSpotify">Login with Spotify</button>
-    <div id="spotify-container">
-      <iframe id="spotify-player" src="https://open.spotify.com/embed/playlist/37i9dQZF1DX4WYpdgoIcn6" allow="encrypted-media"></iframe>
-    </div>
+    <div id="spotify-container"></div>
 
     <!-- Phone System -->
     <h3>Phone System</h3>
@@ -120,6 +134,8 @@ body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text
   <button class="close" onclick="closeViewer()">Close</button>
   <iframe id="game-frame" src=""></iframe>
 </div>
+
+<div id="spotify-bar"></div>
 
 <script>
 // --- Games ---
@@ -212,16 +228,16 @@ function sendSMS(){
   } else alert("Enter a number!");
 }
 
-// --- Spotify login integration ---
+// --- Spotify live integration ---
 const loginBtn = document.getElementById("loginSpotify");
-const spotifyContainer = document.getElementById('spotify-container');
-loginBtn.onclick = () => { window.location.href = "http://localhost:8888/login"; }
+const spotifyBar = document.getElementById("spotify-bar");
+loginBtn.onclick = () => { window.location.href = "https://classroomhub-one.vercel.app/spotify/login"; }
 
-// Check for access token from redirect
 const params = new URLSearchParams(window.location.search);
 const accessToken = params.get("access_token");
+
 if(accessToken){
-  spotifyContainer.innerHTML = "<div id='playerStatus'>Loading Spotify Player...</div>";
+  spotifyBar.innerHTML = "<div id='playerStatus'>Loading Spotify Player...</div>";
 
   window.onSpotifyWebPlaybackSDKReady = () => {
     const player = new Spotify.Player({
