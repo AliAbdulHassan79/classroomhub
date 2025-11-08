@@ -133,40 +133,53 @@ const apps = [
   { title:"Phone", img:"https://i.imgur.com/7rVuXx8.png", iframe:"https://lovable-phonemock.glitch.me/" }
 ];
 
-const grid=document.getElementById("apps-grid");
-apps.forEach(app=>{
-  const card=document.createElement("div");
-  card.className="card";
-  card.innerHTML=`<img src="${app.img}" alt="${app.title}"><div class="title">${app.title}</div>`;
-  card.onclick=()=>openViewer(app);
+const grid = document.getElementById("apps-grid");
+
+// Load saved playlist ID from localStorage
+let playlistID = localStorage.getItem("myPlaylist") || "37i9dQZF1DXcBWIGoYBM5M"; // default playlist
+
+apps.forEach(app => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<img src="${app.img}" alt="${app.title}"><div class="title">${app.title}</div>`;
+  card.onclick = () => openViewer(app);
   grid.appendChild(card);
 });
 
-// --- Viewer Functions ---
 function openViewer(app){
-  const viewer=document.getElementById("viewer");
-  const frame=document.getElementById("game-frame");
-  
-  if(app.title==="Spotify"){
+  const viewer = document.getElementById("viewer");
+  const frame = document.getElementById("game-frame");
+
+  if(app.title === "Spotify"){
+    // Ask for your playlist if not already saved
+    if(!localStorage.getItem("myPlaylist")){
+      const userInput = prompt("Enter your Spotify playlist ID (the part after /playlist/ in the URL):");
+      if(userInput){
+        playlistID = userInput;
+        localStorage.setItem("myPlaylist", playlistID);
+      }
+    }
+
     // Open Spotify login in new tab
     window.open("https://open.spotify.com", "_blank");
-    // Show embedded control bar
-    const spotifyBar=document.getElementById("spotify-bar");
-    const spotifyFrame=document.getElementById("spotify-frame");
-    spotifyBar.style.display="flex";
-    spotifyFrame.src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M";
+
+    // Show embedded control bar with your playlist
+    const spotifyBar = document.getElementById("spotify-bar");
+    const spotifyFrame = document.getElementById("spotify-frame");
+    spotifyBar.style.display = "flex";
+    spotifyFrame.src = `https://open.spotify.com/embed/playlist/${playlistID}`;
     return; // do not open viewer iframe
   }
 
-  frame.src=app.iframe;
-  viewer.style.display="flex";
+  frame.src = app.iframe;
+  viewer.style.display = "flex";
 }
 
 function closeViewer(){
-  const viewer=document.getElementById("viewer");
-  const frame=document.getElementById("game-frame");
-  viewer.style.display="none";
-  frame.src="";
+  const viewer = document.getElementById("viewer");
+  const frame = document.getElementById("game-frame");
+  viewer.style.display = "none";
+  frame.src = "";
 }
 </script>
 </body>
