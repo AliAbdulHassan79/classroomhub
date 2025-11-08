@@ -14,7 +14,7 @@
   --radius:12px;
 }
 body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text);}
-.app{display:grid;grid-template-columns:240px 1fr;gap:16px;max-width:1200px;margin:0 auto;padding:20px;}
+.app{display:grid;grid-template-columns:240px 1fr;gap:16px;width:100%;margin:0 auto;padding:20px;}
 .header{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .brand{display:flex;align-items:center;gap:10px;}
 .brand .logo{font-size:28px;}
@@ -46,51 +46,6 @@ body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text
 .phone h3 { margin:5px 0; font-size:16px; }
 
 @media (max-width:900px){.app{grid-template-columns:1fr;}.sidebar{order:2;}.main{order:1;}}
-
-/* Draggable + Minimizable Spotify bar */
-#spotify-bar{
-  position:fixed;
-  bottom:0;
-  left:50%;
-  transform:translateX(-50%);
-  background:var(--accent);
-  color:#fff;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  height:80px;
-  width:320px;
-  border-radius:12px 12px 0 0;
-  box-shadow:0 -2px 10px rgba(0,0,0,0.2);
-  z-index:150;
-  cursor:grab;
-}
-#spotify-bar.minimized{
-  height:30px;
-  width:160px;
-  border-radius:12px;
-}
-#spotify-frame{
-  border:none;
-  width:300px;
-  height:80px;
-  border-radius:0;
-}
-#spotify-bar.minimized #spotify-frame{
-  display:none;
-}
-#minimize-btn{
-  position:absolute;
-  top:4px;
-  right:8px;
-  background:#fff;
-  color:#000;
-  border:none;
-  padding:2px 6px;
-  border-radius:4px;
-  cursor:pointer;
-  font-weight:bold;
-}
 </style>
 </head>
 <body>
@@ -113,7 +68,10 @@ body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text
     <div class="grid" id="games-grid"></div>
 
     <h3>Spotify</h3>
-    <button class="toggle-btn" id="toggleMode">Open Spotify</button>
+    <button class="toggle-btn" id="toggleMode">Switch to Spotify Login</button>
+    <div id="spotify-container">
+      <iframe id="spotify-player" src="https://open.spotify.com/embed/playlist/37i9dQZF1DX4WYpdgoIcn6" allow="encrypted-media"></iframe>
+    </div>
 
     <!-- Phone System -->
     <h3>Phone System</h3>
@@ -159,16 +117,9 @@ body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text
   </main>
 </div>
 
-<!-- Game Viewer -->
 <div class="viewer" id="viewer">
   <button class="close" onclick="closeViewer()">Close</button>
   <iframe id="game-frame" src=""></iframe>
-</div>
-
-<!-- Spotify Draggable Bar -->
-<div id="spotify-bar">
-  <button id="minimize-btn">_</button>
-  <iframe id="spotify-frame" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
 </div>
 
 <script>
@@ -262,43 +213,22 @@ function sendSMS(){
   } else alert("Enter a number!");
 }
 
-// --- Spotify ---
-let playlistID = localStorage.getItem("myPlaylist") || "37i9dQZF1DXcBWIGoYBM5M"; // default
-const spotifyBar = document.getElementById("spotify-bar");
-const spotifyFrame = document.getElementById("spotify-frame");
-const minimizeBtn = document.getElementById("minimize-btn");
-document.getElementById("toggleMode").onclick = () => {
-  if(!localStorage.getItem("myPlaylist")){
-    const userInput = prompt("Enter your Spotify playlist ID (the part after /playlist/ in the URL):");
-    if(userInput){
-      playlistID = userInput;
-      localStorage.setItem("myPlaylist", playlistID);
-    }
+// --- Spotify toggle (original UI) ---
+const toggleBtn = document.getElementById('toggleMode');
+const spotifyContainer = document.getElementById('spotify-container');
+let isGuest = true;
+toggleBtn.onclick = () => {
+  if(isGuest){
+    isGuest = false;
+    toggleBtn.textContent = "Switch to Guest Mode";
+    spotifyContainer.innerHTML = `<button id="loginSpotify" class="toggle-btn">Login with Spotify</button>`;
+    document.getElementById('loginSpotify').onclick = () => alert("Spotify login placeholder");
+  } else {
+    isGuest = true;
+    toggleBtn.textContent = "Switch to Spotify Login";
+    spotifyContainer.innerHTML = `<iframe id="spotify-player" src="https://open.spotify.com/embed/playlist/37i9dQZF1DX4WYpdgoIcn6" allow="encrypted-media"></iframe>`;
   }
-  window.open("https://open.spotify.com","_blank");
-  spotifyBar.style.display="flex";
-  spotifyFrame.src=`https://open.spotify.com/embed/playlist/${playlistID}`;
-};
-
-// --- Drag & Minimize Spotify bar ---
-let isDragging=false, offsetY=0;
-spotifyBar.addEventListener("mousedown",e=>{
-  if(e.target!==minimizeBtn){
-    isDragging=true;
-    offsetY=e.clientY - spotifyBar.getBoundingClientRect().top;
-    spotifyBar.style.cursor="grabbing";
-  }
-});
-document.addEventListener("mouseup",()=>{isDragging=false; spotifyBar.style.cursor="grab";});
-document.addEventListener("mousemove",e=>{
-  if(isDragging){
-    let newY = e.clientY - offsetY;
-    newY=Math.max(0,Math.min(window.innerHeight - spotifyBar.offsetHeight,newY));
-    spotifyBar.style.top=newY+"px";
-    spotifyBar.style.bottom="auto";
-  }
-});
-minimizeBtn.addEventListener("click",e=>{e.stopPropagation(); spotifyBar.classList.toggle("minimized");});
+}
 </script>
 </body>
 </html>
